@@ -256,7 +256,7 @@ export default () => {
           <button onClick={handleButtonClick} disabled={systemRoleEditing()} gen-slate-btn>
             发送
           </button>
-          <button title="Clear" onClick={clear} disabled={systemRoleEditing()} gen-slate-btn>
+          <button title="Clear" onClick={clear} disabled={systemRoleEditing()} gen-slate-btn1>
             <IconClear />
           </button>
         </div>
