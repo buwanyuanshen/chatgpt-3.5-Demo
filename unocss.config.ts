@@ -45,7 +45,7 @@ export default defineConfig({
     'gpt-back-bottom-btn': 'gpt-back-top-btn bottom-20px transform-rotate-180deg',
     'gpt-password-input': 'px-4 py-3 h-12 rounded-sm bg-(slate op-15) base-focus',
     'gpt-password-submit': 'fcc h-12 w-12 bg-slate cursor-pointer bg-op-20 hover:bg-op-50',
-    'gen-slate-btn': 'h-12 px-4 py-2 bg-(slate op-15) hover:bg-op-20 rounded-sm',
+    'gen-slate-btn': 'h-12 px-4 py-2 bg-(slate op-15) hover:bg-op-20 rounded-sm w-6.2rem',
     'gen-cb-wrapper': 'h-12 my-4 fcc gap-4 bg-(slate op-15) rounded-sm',
     'gen-cb-stop': 'px-2 py-0.5 border border-slate rounded-md text-sm op-70 cursor-pointer hover:bg-slate/10',
     'gen-text-wrapper': 'my-4 fc gap-2 transition-opacity',
