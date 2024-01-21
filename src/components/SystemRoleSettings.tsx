@@ -15,7 +15,7 @@ interface Props {
 
 export default (props: Props) => {
   let systemInputRef: HTMLTextAreaElement
-  const [temperature, setTemperature] = createSignal(0.6)
+  const [temperature, setTemperature] = createSignal(0.5)
 
   const handleButtonClick = () => {
     props.setCurrentSystemRoleSettings(systemInputRef.value)
