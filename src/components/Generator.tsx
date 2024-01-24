@@ -82,80 +82,76 @@ export default () => {
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'instant' })
   }
 
-  const requestWithLatestMessage = async () => {
-  setLoading(true);
-  setCurrentAssistantMessage('');
-  setCurrentError(null);
-  const storagePassword = localStorage.getItem('pass');
-  
-  try {
-    const controller = new AbortController();
-    setController(controller);
-    const requestMessageList = messageList().slice(-maxHistoryMessages);
-    
-    if (currentSystemRoleSettings()) {
-      requestMessageList.unshift({
-        role: 'system',
-        content: currentSystemRoleSettings(),
-      });
-    }
-    
-    const timestamp = Date.now();
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      body: JSON.stringify({
-        messages: requestMessageList,
-        time: timestamp,
-        pass: storagePassword,
-        sign: await generateSignature({
-          t: timestamp,
-          m: requestMessageList?.[requestMessageList.length - 1]?.content || '',
-        }),
-        temperature: temperature(),
-      }),
-      signal: controller.signal,
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      console.error(error.error);
-      setCurrentError(error.error);
-      throw new Error('Request failed');
-    }
-    
-    const data = await response.json(); // Assuming the response is JSON, adjust accordingly if not
-    const delta = data.delta; // Assuming 'delta' is a property in the JSON response
-    
-    const reader = data.json(); // Using data.json() instead of data.getReader()
-    const decoder = new TextDecoder('utf-8');
-    let done = false;
-
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      if (value) {
-        const char = decoder.decode(value);
-        if (char === '\n' && currentAssistantMessage().endsWith('\n')) {
-          continue;
-        }
-
-        if (char) {
-          setCurrentAssistantMessage(currentAssistantMessage() + char);
-        }
-
-        isStick() && instantToBottom();
+  const requestWithLatestMessage = async() => {
+    setLoading(true)
+    setCurrentAssistantMessage('')
+    setCurrentError(null)
+    const storagePassword = localStorage.getItem('pass')
+    try {
+      const controller = new AbortController()
+      setController(controller)
+      const requestMessageList = messageList().slice(-maxHistoryMessages)
+      if (currentSystemRoleSettings()) {
+        requestMessageList.unshift({
+          role: 'system',
+          content: currentSystemRoleSettings(),
+        })
       }
-      done = readerDone;
-    }
-  } catch (e) {
-    console.error(e);
-    setLoading(false);
-    setController(null);
-    return;
-  }
+      const timestamp = Date.now()
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          messages: requestMessageList,
+          time: timestamp,
+          pass: storagePassword,
+          sign: await generateSignature({
+            t: timestamp,
+            m: requestMessageList?.[requestMessageList.length - 1]?.content || '',
+          }),
+           headers: {
+                "Content-Type": "application/json" 
+            }
+          temperature: temperature(),
+        }),
+        signal: controller.signal,
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        console.error(error.error)
+        setCurrentError(error.error)
+        throw new Error('Request failed')
+      }
+      const data = response.body
+      if (!data)
+        throw new Error('No data')
 
-  archiveCurrentMessage();
-  isStick() && instantToBottom();
-}
+      const reader = data.getReader()
+      const decoder = new TextDecoder('utf-8')
+      let done = false
+
+      while (!done) {
+        const { value, done: readerDone } = await reader.read()
+        if (value) {
+          const char = decoder.decode(value)
+          if (char === '\n' && currentAssistantMessage().endsWith('\n'))
+            continue
+
+          if (char)
+            setCurrentAssistantMessage(currentAssistantMessage() + char)
+
+          isStick() && instantToBottom()
+        }
+        done = readerDone
+      }
+    } catch (e) {
+      console.error(e)
+      setLoading(false)
+      setController(null)
+      return
+    }
+    archiveCurrentMessage()
+    isStick() && instantToBottom()
+  }
 
   const archiveCurrentMessage = () => {
     if (currentAssistantMessage()) {
