@@ -108,9 +108,6 @@ export default () => {
             t: timestamp,
             m: requestMessageList?.[requestMessageList.length - 1]?.content || '',
           }),
-           headers: {
-                "Content-Type": "application/json" 
-            }
           temperature: temperature(),
         }),
         signal: controller.signal,
