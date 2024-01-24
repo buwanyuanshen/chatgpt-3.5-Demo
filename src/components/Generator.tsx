@@ -83,9 +83,9 @@ export default () => {
   }
 
   const requestWithLatestMessage = async () => {
-  setLoading(true)
-  setCurrentAssistantMessage('')
-  setCurrentError(null)
+  setLoading(true);
+  setCurrentAssistantMessage('');
+  setCurrentError(null);
   const storagePassword = localStorage.getItem('pass');
   
   try {
@@ -124,15 +124,9 @@ export default () => {
     }
     
     const data = await response.json(); // Assuming the response is JSON, adjust accordingly if not
+    const delta = data.delta; // Assuming 'delta' is a property in the JSON response
     
-    if (!data) {
-      throw new Error('No data');
-    }
-
-    // Here, you can define and use 'delta' property from the response
-    const delta = data.delta;
-    
-    const reader = data.getReader();
+    const reader = data.json(); // Using data.json() instead of data.getReader()
     const decoder = new TextDecoder('utf-8');
     let done = false;
 
