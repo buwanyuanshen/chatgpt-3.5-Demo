@@ -1,17 +1,15 @@
-// #vercel-disable-blocks
 import { ProxyAgent, fetch } from 'undici'
-// #vercel-end
 import { generatePayload, parseOpenAIStream } from '@/utils/openAI'
 import { verifySignature } from '@/utils/auth'
 import type { APIRoute } from 'astro'
 
-const apiKey = import.meta.env.OPENAI_API_KEY
+const apiKeys = import.meta.env.OPENAI_API_KEYS.split(',') || []
 const httpsProxy = import.meta.env.HTTPS_PROXY
-const baseUrl = ((import.meta.env.OPENAI_API_BASE_URL) || 'https://api.openai.com').trim().replace(/\/$/, '')
+const baseUrl = (import.meta.env.OPENAI_API_BASE_URL || 'https://api.openai.com').trim().replace(/\/$/, '')
 const sitePassword = import.meta.env.SITE_PASSWORD || ''
 const passList = sitePassword.split(',') || []
 
-export const post: APIRoute = async(context) => {
+export const post: APIRoute = async (context) => {
   const body = await context.request.json()
   const { sign, time, messages, pass, temperature } = body
   if (!messages) {
@@ -35,15 +33,17 @@ export const post: APIRoute = async(context) => {
       },
     }), { status: 401 })
   }
-  const initOptions = generatePayload(apiKey, messages, temperature)
-  // #vercel-disable-blocks
-  if (httpsProxy)
-    initOptions.dispatcher = new ProxyAgent(httpsProxy)
-  // #vercel-end
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
-  const response = await fetch(`${baseUrl}/v1/chat/completions`, initOptions).catch((err: Error) => {
+  const apiKey = apiKeys[Math.floor(Math.random() * apiKeys.length)]
+  const initOptions = generatePayload(apiKey, messages, temperature)
+  if (httpsProxy) {
+    initOptions.dispatcher = new ProxyAgent(httpsProxy)
+  }
+
+  try {
+    const response = await fetch(`${baseUrl}/v1/chat/completions`, initOptions)
+    return parseOpenAIStream(response)
+  } catch (err) {
     console.error(err)
     return new Response(JSON.stringify({
       error: {
@@ -51,7 +51,5 @@ export const post: APIRoute = async(context) => {
         message: err.message,
       },
     }), { status: 500 })
-  }) as Response
-
-  return parseOpenAIStream(response) as Response
+  }
 }
