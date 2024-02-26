@@ -42,19 +42,17 @@ export const parseOpenAIStream = (rawResponse: Response) => {
             return
           }
           try {
-            // response = {
-            //   id: 'chatcmpl-6pULPSegWhFgi0XQ1DtgA3zTa1WR6',
-            //   object: 'chat.completion.chunk',
-            //   created: 1677729391,
-            //   model: 'gpt-3.5-turbo-0301',
-            //   choices: [
-            //     { delta: { content: '你' }, index: 0, finish_reason: null }
-            //   ],
-            // }
             const json = JSON.parse(data)
-            const text = json.choices[0].delta?.content || ''
-            const queue = encoder.encode(text)
-            controller.enqueue(queue)
+            // Check if 'choices' exists and is an array with at least one element
+            if (Array.isArray(json.choices) && json.choices.length > 0) {
+              // Check if 'delta' exists in the first choice and has a 'content' key
+              const text = json.choices[0].delta?.content || ''
+              const queue = encoder.encode(text)
+              controller.enqueue(queue)
+            } else {
+              // Handle the case where 'choices' is missing or empty
+              console.error('No choices available in the data:', json)
+            }
           } catch (e) {
             controller.error(e)
           }
@@ -69,3 +67,4 @@ export const parseOpenAIStream = (rawResponse: Response) => {
 
   return new Response(stream)
 }
+
